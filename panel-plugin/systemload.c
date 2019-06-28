@@ -98,6 +98,8 @@ typedef struct
     gboolean   enabled;
 } t_uptime_monitor;
 
+#define NUM_MONITORS 3
+
 typedef struct
 {
     XfcePanelPlugin   *plugin;
@@ -107,7 +109,7 @@ typedef struct
     gboolean          use_timeout_seconds;
     guint             timeout_id;
     t_command         command;
-    t_monitor         *monitor[3];
+    t_monitor         *monitor[NUM_MONITORS];
     t_uptime_monitor  *uptime;
 #ifdef HAVE_UPOWER_GLIB
     UpClient          *upower;
@@ -149,7 +151,7 @@ update_monitors(t_global_monitor *global)
     if (global->uptime->enabled)
         global->uptime->value_read = read_uptime();
 
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         if (global->monitor[count]->options.enabled)
         {
@@ -231,7 +233,7 @@ monitor_update_orientation (XfcePanelPlugin  *plugin,
 {
     gint count;
     gtk_orientable_set_orientation(GTK_ORIENTABLE(global->box), panel_orientation);
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         gtk_orientable_set_orientation(GTK_ORIENTABLE(global->monitor[count]->box), panel_orientation);
         gtk_label_set_angle(GTK_LABEL(global->monitor[count]->label),
@@ -254,7 +256,7 @@ create_monitor (t_global_monitor *global)
     global->box = gtk_box_new(xfce_panel_plugin_get_orientation(global->plugin), 0);
     gtk_widget_show(global->box);
 
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         global->monitor[count]->label =
             gtk_label_new(global->monitor[count]->options.label_text);
@@ -347,7 +349,7 @@ monitor_control_new(XfcePanelPlugin *plugin)
 
     xfce_panel_plugin_add_action_widget (plugin, global->ebox);
 
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         global->monitor[count] = g_new(t_monitor, 1);
         global->monitor[count]->options.label_text =
@@ -388,7 +390,7 @@ monitor_free(XfcePanelPlugin *plugin, t_global_monitor *global)
 
     g_free(global->command.command_text);
 
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         if (global->monitor[count]->options.label_text)
             g_free(global->monitor[count]->options.label_text);
@@ -441,7 +443,7 @@ setup_monitor(t_global_monitor *global)
 
     gtk_widget_hide(GTK_WIDGET(global->uptime->ebox));
 
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         gtk_widget_hide(GTK_WIDGET(global->monitor[count]->ebox));
         gtk_widget_hide(global->monitor[count]->label);
@@ -534,7 +536,7 @@ monitor_read_config(XfcePanelPlugin *plugin, t_global_monitor *global)
         }
     }
 
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         if (xfce_rc_has_group (rc, MONITOR_ROOT[count]))
         {
@@ -592,7 +594,7 @@ monitor_write_config(XfcePanelPlugin *plugin, t_global_monitor *global)
     xfce_rc_write_int_entry (rc, "Timeout_Seconds", global->timeout_seconds);
     xfce_rc_write_entry (rc, "Click_Command", global->command.command_text);
 
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         xfce_rc_set_group (rc, MONITOR_ROOT[count]);
 
@@ -625,7 +627,7 @@ monitor_set_size(XfcePanelPlugin *plugin, int size, t_global_monitor *global)
     gint count;
 
     gtk_container_set_border_width (GTK_CONTAINER (global->ebox), (size > 26 ? 2 : 1));
-    for(count = 0; count < 3; count++)
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         if (xfce_panel_plugin_get_orientation (plugin) ==
                 GTK_ORIENTATION_HORIZONTAL)
@@ -908,8 +910,8 @@ monitor_create_options(XfcePanelPlugin *plugin, t_global_monitor *global)
     gtk_grid_attach (GTK_GRID (grid), entry, 1, 3, 1, 1);
     label = new_label (GTK_GRID (grid), 3, _("System monitor:"), entry);
 
-    /* Add options for the three monitors */
-    for(count = 0; count < 3; count++)
+    /* Add options for the NUM_MONITORS monitors */
+    for(count = 0; count < NUM_MONITORS; count++)
     {
         monitor = global->monitor[count];
 
