@@ -26,5 +26,5 @@
 #define __GPU_H
 #include <gtk/gtk.h>
 
-gint read_gpu(gulong *, gulong *);
+gint read_gpu(gulong *, gulong *, gulong *, gulong *);
 #endif /* ndef __GPU_H */

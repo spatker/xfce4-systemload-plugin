@@ -141,7 +141,7 @@ update_monitors(t_global_monitor *global)
 {
 
     gchar caption[128];
-    gulong mem, swap, MTotal, MUsed, STotal, SUsed, gpu_util, gpu_mem;
+    gulong mem, swap, MTotal, MUsed, STotal, SUsed, gpu_util, gpu_mem, gpu_mem_total, gpu_mem_used;
     gint count, days, hours, mins;
 
     if (global->monitor[CPU_MONITOR]->options.enabled)
@@ -152,7 +152,7 @@ update_monitors(t_global_monitor *global)
         global->monitor[SWAP_MONITOR]->history[0] = swap;
     }
     if (global->monitor[GPU_MONITOR]->options.enabled || global->monitor[GPU_MEM_MONITOR]->options.enabled) {
-        read_gpu(&gpu_util, &gpu_mem);
+        read_gpu(&gpu_util, &gpu_mem, &gpu_mem_total, &gpu_mem_used);
         global->monitor[GPU_MONITOR]->history[0] = gpu_util;
         global->monitor[GPU_MEM_MONITOR]->history[0] = gpu_mem;
     }
@@ -216,8 +216,8 @@ update_monitors(t_global_monitor *global)
     }
     if (global->monitor[GPU_MEM_MONITOR]->options.enabled)
     {
-        g_snprintf(caption, sizeof(caption), _("GPU Memory: %ld%%"),
-                   global->monitor[GPU_MEM_MONITOR]->value_read);
+        g_snprintf(caption, sizeof(caption), _("GPU Memory: %ldMB of %ldMB used"),
+                    gpu_mem_used, gpu_mem_total);
         gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[GPU_MEM_MONITOR]->ebox), caption);
     }
 

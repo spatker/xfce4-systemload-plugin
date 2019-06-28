@@ -40,22 +40,22 @@
 #include <stdio.h>
 #include <string.h>
 
-gint read_gpu(gulong *load, gulong *mem)
+gint read_gpu(gulong *load, gulong *mem, gulong *mem_total, gulong *mem_used)
 {
     FILE *fp;
-    fp = popen("nvidia-smi --query-gpu=utilization.gpu,utilization.memory --format=csv,noheader,nounits", "r");
+    fp = popen("nvidia-smi --query-gpu=utilization.gpu,utilization.memory,memory.total,memory.used --format=csv,noheader,nounits", "r");
     if (fp == NULL) {
         g_warning("nvidia-smi not found!");
         return 0;
     }
 
-    unsigned long long int nvidia_load, nvidia_mem;
+    unsigned long long int nvidia_load, nvidia_mem, nvidia_mem_total, nvidia_mem_used;
     int nb_read;
-    nb_read = fscanf (fp, "%llu, %llu",
-	    &nvidia_load, &nvidia_mem);
+    nb_read = fscanf (fp, "%llu, %llu, %llu, %llu",
+	    &nvidia_load, &nvidia_mem, &nvidia_mem_total, &nvidia_mem_used);
     pclose(fp);
 
-    if(nb_read != 2)
+    if(nb_read != 4)
     {
         g_warning("Failed to parse nvidia-smi output");
         return 0;
@@ -63,6 +63,8 @@ gint read_gpu(gulong *load, gulong *mem)
 
     *load = nvidia_load;
     *mem = nvidia_mem;
+    *mem_total = nvidia_mem_total;
+    *mem_used = nvidia_mem_used;
 
     return 1;
 }
