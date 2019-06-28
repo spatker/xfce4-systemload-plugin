@@ -1,7 +1,7 @@
 [Xfce Panel]
 Type=X-XFCE-PanelPlugin
 Encoding=UTF-8
-Name=System Load Monitor Dummy
+Name=System Load Monitor GPU
 Comment=Monitor CPU load, swap usage and memory footprint
 Comment[ar]=راقب حمل المعالج واستعمال الإبدال والذاكرة
 Comment[ast]=Monitor de carga de la CPU, d'usu d'intercambiu y de memoria
@@ -51,6 +51,6 @@ Comment[ur_PK]=یاداشت، سویپ، اور CPU لوڈ کو مانیٹر ک�
 Comment[zh_CN]=监视 CPU 负载、交换分区用量和内存使用踪迹
 Comment[zh_TW]=監測 CPU 負載、置換空間及記憶體使用量
 Icon=utilities-system-monitor
-X-XFCE-Module=systemloaddummy
+X-XFCE-Module=systemloadgpu
 X-XFCE-Internal=false
 X-XFCE-API=2.0

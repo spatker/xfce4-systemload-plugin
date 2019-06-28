@@ -47,13 +47,14 @@
 #include "cpu.h"
 #include "memswap.h"
 #include "uptime.h"
+#include "gpu.h"
 
 #define NUM_MONITORS 4
 
 /* for xml: */
-static gchar *MONITOR_ROOT[] = { "SL_Cpu", "SL_Mem", "SL_Swap", "SL_Dummy", "SL_Uptime" };
+static gchar *MONITOR_ROOT[] = { "SL_Cpu", "SL_Mem", "SL_Swap", "SL_GPU", "SL_Uptime" };
 
-static gchar *DEFAULT_TEXT[] = { "cpu", "mem", "swap", "dummy" };
+static gchar *DEFAULT_TEXT[] = { "cpu", "mem", "swap", "gpu" };
 static gchar *DEFAULT_COLOR[] = { "#0000c0", "#00c000", "#f0f000", "#ff00ff" };
 static gchar *DEFAULT_COMMAND_TEXT = "xfce4-taskmanager";
 
@@ -140,7 +141,7 @@ update_monitors(t_global_monitor *global)
 {
 
     gchar caption[128];
-    gulong mem, swap, MTotal, MUsed, STotal, SUsed;
+    gulong mem, swap, MTotal, MUsed, STotal, SUsed, gpu_util, gpu_mem;
     gint count, days, hours, mins;
 
     if (global->monitor[0]->options.enabled)
@@ -149,6 +150,10 @@ update_monitors(t_global_monitor *global)
         read_memswap(&mem, &swap, &MTotal, &MUsed, &STotal, &SUsed);
         global->monitor[1]->history[0] = mem;
         global->monitor[2]->history[0] = swap;
+    }
+    if (global->monitor[3]->options.enabled) {
+        read_gpu(&gpu_util, &gpu_mem);
+        global->monitor[3]->history[0] = gpu_util;
     }
     if (global->uptime->enabled)
         global->uptime->value_read = read_uptime();
@@ -204,7 +209,7 @@ update_monitors(t_global_monitor *global)
 
     if (global->monitor[3]->options.enabled)
     {
-        g_snprintf(caption, sizeof(caption), _("Dummy Load: %ld%%"),
+        g_snprintf(caption, sizeof(caption), _("GPU Load: %ld%%"),
                    global->monitor[3]->value_read);
         gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[3]->ebox), caption);
     }
@@ -858,7 +863,7 @@ monitor_create_options(XfcePanelPlugin *plugin, t_global_monitor *global)
             N_ ("CPU monitor"),
             N_ ("Memory monitor"),
             N_ ("Swap monitor"),
-            N_ ("Dummy monitor"),
+            N_ ("GPU monitor"),
             N_ ("Uptime monitor")
     };
 
