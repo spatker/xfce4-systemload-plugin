@@ -657,12 +657,12 @@ monitor_set_size(XfcePanelPlugin *plugin, int size, t_global_monitor *global)
                 GTK_ORIENTATION_HORIZONTAL)
         {
             gtk_widget_set_size_request(GTK_WIDGET(global->monitor[count]->status),
-                                        8, -1);
+                                        16, -1);
         }
         else
         {
             gtk_widget_set_size_request(GTK_WIDGET(global->monitor[count]->status),
-                                        -1, 8);
+                                        -1, 16);
         }
     }
 
