@@ -1,9 +1,9 @@
 [Xfce Panel]
 Type=X-XFCE-PanelPlugin
 Encoding=UTF-8
-_Name=System Load Monitor
+_Name=System Load Monitor Dummy
 _Comment=Monitor CPU load, swap usage and memory footprint
 Icon=utilities-system-monitor
-X-XFCE-Module=systemload
+X-XFCE-Module=systemloaddummy
 X-XFCE-Internal=false
 X-XFCE-API=2.0

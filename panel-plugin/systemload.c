@@ -48,11 +48,13 @@
 #include "memswap.h"
 #include "uptime.h"
 
-/* for xml: */
-static gchar *MONITOR_ROOT[] = { "SL_Cpu", "SL_Mem", "SL_Swap", "SL_Uptime" };
+#define NUM_MONITORS 4
 
-static gchar *DEFAULT_TEXT[] = { "cpu", "mem", "swap" };
-static gchar *DEFAULT_COLOR[] = { "#0000c0", "#00c000", "#f0f000" };
+/* for xml: */
+static gchar *MONITOR_ROOT[] = { "SL_Cpu", "SL_Mem", "SL_Swap", "SL_Dummy", "SL_Uptime" };
+
+static gchar *DEFAULT_TEXT[] = { "cpu", "mem", "swap", "dummy" };
+static gchar *DEFAULT_COLOR[] = { "#0000c0", "#00c000", "#f0f000", "#ff00ff" };
 static gchar *DEFAULT_COMMAND_TEXT = "xfce4-taskmanager";
 
 #define UPDATE_TIMEOUT 500
@@ -60,7 +62,7 @@ static gchar *DEFAULT_COMMAND_TEXT = "xfce4-taskmanager";
 
 #define BORDER 8
 
-enum { CPU_MONITOR, MEM_MONITOR, SWAP_MONITOR };
+enum { CPU_MONITOR, MEM_MONITOR, SWAP_MONITOR, DUMMY };
 
 typedef struct
 {
@@ -98,7 +100,7 @@ typedef struct
     gboolean   enabled;
 } t_uptime_monitor;
 
-#define NUM_MONITORS 3
+
 
 typedef struct
 {
@@ -198,6 +200,13 @@ update_monitors(t_global_monitor *global)
             g_snprintf(caption, sizeof(caption), _("No swap"));
 
         gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[2]->ebox), caption);
+    }
+
+    if (global->monitor[3]->options.enabled)
+    {
+        g_snprintf(caption, sizeof(caption), _("Dummy Load: %ld%%"),
+                   global->monitor[3]->value_read);
+        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[3]->ebox), caption);
     }
 
     if (global->uptime->enabled)
@@ -485,9 +494,12 @@ setup_monitor(t_global_monitor *global)
     }
     if(global->uptime->enabled)
     {
-        if (global->monitor[0]->options.enabled ||
-            global->monitor[1]->options.enabled ||
-            global->monitor[2]->options.enabled)
+        int enabled = FALSE;
+        for(int count = 0; count < NUM_MONITORS; ++count)
+        {
+            enabled |= global->monitor[count]->options.enabled;
+        }
+        if (enabled)
         {
             gtk_container_set_border_width(GTK_CONTAINER(global->uptime->ebox), 2);
         }
@@ -561,9 +573,9 @@ monitor_read_config(XfcePanelPlugin *plugin, t_global_monitor *global)
                     g_strdup(value);
             }
         }
-        if (xfce_rc_has_group (rc, MONITOR_ROOT[3]))
+        if (xfce_rc_has_group (rc, MONITOR_ROOT[NUM_MONITORS]))
         {
-            xfce_rc_set_group (rc, MONITOR_ROOT[3]);
+            xfce_rc_set_group (rc, MONITOR_ROOT[NUM_MONITORS]);
 
             global->uptime->enabled =
                 xfce_rc_read_bool_entry (rc, "Enabled", TRUE);
@@ -613,7 +625,7 @@ monitor_write_config(XfcePanelPlugin *plugin, t_global_monitor *global)
                 global->monitor[count]->options.label_text : "");
     }
 
-    xfce_rc_set_group (rc, MONITOR_ROOT[3]);
+    xfce_rc_set_group (rc, MONITOR_ROOT[NUM_MONITORS]);
 
     xfce_rc_write_bool_entry (rc, "Enabled",
             global->uptime->enabled);
@@ -846,6 +858,7 @@ monitor_create_options(XfcePanelPlugin *plugin, t_global_monitor *global)
             N_ ("CPU monitor"),
             N_ ("Memory monitor"),
             N_ ("Swap monitor"),
+            N_ ("Dummy monitor"),
             N_ ("Uptime monitor")
     };
 
@@ -924,8 +937,8 @@ monitor_create_options(XfcePanelPlugin *plugin, t_global_monitor *global)
     }
 
     /* Uptime monitor options */
-    new_monitor_setting(global, GTK_GRID(grid), 11,
-                      _(FRAME_TEXT[3]), &global->uptime->enabled,
+    new_monitor_setting(global, GTK_GRID(grid), 4 + 2 * NUM_MONITORS + 1,
+                      _(FRAME_TEXT[NUM_MONITORS]), &global->uptime->enabled,
                       NULL, NULL, NULL);
 
     gtk_widget_show_all (dlg);
