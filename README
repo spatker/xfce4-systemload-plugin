@@ -2,3 +2,5 @@ System Load plugin for XFce4.
 
 This plugin displays the current system load on
 the XFce4 panel.
+
+This fork also works with nvidia-smi. It displays the GPU load and the memory usage.
