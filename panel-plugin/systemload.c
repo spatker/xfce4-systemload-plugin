@@ -49,13 +49,13 @@
 #include "uptime.h"
 #include "gpu.h"
 
-#define NUM_MONITORS 4
+#define NUM_MONITORS 5
 
 /* for xml: */
-static gchar *MONITOR_ROOT[] = { "SL_Cpu", "SL_Mem", "SL_Swap", "SL_GPU", "SL_Uptime" };
+static gchar *MONITOR_ROOT[] = { "SL_Cpu", "SL_Mem", "SL_Swap", "SL_GPU", "SL_GPU_MEM" "SL_Uptime" };
 
-static gchar *DEFAULT_TEXT[] = { "cpu", "mem", "swap", "gpu" };
-static gchar *DEFAULT_COLOR[] = { "#0000c0", "#00c000", "#f0f000", "#ff00ff" };
+static gchar *DEFAULT_TEXT[] = { "cpu", "mem", "swap", "gpu", "gpu_mem" };
+static gchar *DEFAULT_COLOR[] = { "#0000c0", "#00c000", "#f0f000", "#ff00ff", "#aa00cc" };
 static gchar *DEFAULT_COMMAND_TEXT = "xfce4-taskmanager";
 
 #define UPDATE_TIMEOUT 500
@@ -63,7 +63,7 @@ static gchar *DEFAULT_COMMAND_TEXT = "xfce4-taskmanager";
 
 #define BORDER 8
 
-enum { CPU_MONITOR, MEM_MONITOR, SWAP_MONITOR, DUMMY };
+enum { CPU_MONITOR = 0, MEM_MONITOR, SWAP_MONITOR, GPU_MONITOR, GPU_MEM_MONITOR };
 
 typedef struct
 {
@@ -144,16 +144,17 @@ update_monitors(t_global_monitor *global)
     gulong mem, swap, MTotal, MUsed, STotal, SUsed, gpu_util, gpu_mem;
     gint count, days, hours, mins;
 
-    if (global->monitor[0]->options.enabled)
-        global->monitor[0]->history[0] = read_cpuload();
-    if (global->monitor[1]->options.enabled || global->monitor[2]->options.enabled) {
+    if (global->monitor[CPU_MONITOR]->options.enabled)
+        global->monitor[CPU_MONITOR]->history[0] = read_cpuload();
+    if (global->monitor[MEM_MONITOR]->options.enabled || global->monitor[SWAP_MONITOR]->options.enabled) {
         read_memswap(&mem, &swap, &MTotal, &MUsed, &STotal, &SUsed);
-        global->monitor[1]->history[0] = mem;
-        global->monitor[2]->history[0] = swap;
+        global->monitor[MEM_MONITOR]->history[0] = mem;
+        global->monitor[SWAP_MONITOR]->history[0] = swap;
     }
-    if (global->monitor[3]->options.enabled) {
+    if (global->monitor[GPU_MONITOR]->options.enabled || global->monitor[GPU_MEM_MONITOR]->options.enabled) {
         read_gpu(&gpu_util, &gpu_mem);
-        global->monitor[3]->history[0] = gpu_util;
+        global->monitor[GPU_MONITOR]->history[0] = gpu_util;
+        global->monitor[GPU_MEM_MONITOR]->history[0] = gpu_mem;
     }
     if (global->uptime->enabled)
         global->uptime->value_read = read_uptime();
@@ -182,21 +183,21 @@ update_monitors(t_global_monitor *global)
                  global->monitor[count]->value_read / 100.0);
         }
     }
-    if (global->monitor[0]->options.enabled)
+    if (global->monitor[CPU_MONITOR]->options.enabled)
     {
         g_snprintf(caption, sizeof(caption), _("System Load: %ld%%"),
                    global->monitor[0]->value_read);
-        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[0]->ebox), caption);
+        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[CPU_MONITOR]->ebox), caption);
     }
 
-    if (global->monitor[1]->options.enabled)
+    if (global->monitor[MEM_MONITOR]->options.enabled)
     {
         g_snprintf(caption, sizeof(caption), _("Memory: %ldMB of %ldMB used"),
                    MUsed >> 10 , MTotal >> 10);
-        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[1]->ebox), caption);
+        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[MEM_MONITOR]->ebox), caption);
     }
 
-    if (global->monitor[2]->options.enabled)
+    if (global->monitor[SWAP_MONITOR]->options.enabled)
     {
         if (STotal)
             g_snprintf(caption, sizeof(caption), _("Swap: %ldMB of %ldMB used"),
@@ -204,14 +205,20 @@ update_monitors(t_global_monitor *global)
         else
             g_snprintf(caption, sizeof(caption), _("No swap"));
 
-        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[2]->ebox), caption);
+        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[SWAP_MONITOR]->ebox), caption);
     }
 
-    if (global->monitor[3]->options.enabled)
+    if (global->monitor[GPU_MONITOR]->options.enabled)
     {
         g_snprintf(caption, sizeof(caption), _("GPU Load: %ld%%"),
-                   global->monitor[3]->value_read);
-        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[3]->ebox), caption);
+                   global->monitor[GPU_MONITOR]->value_read);
+        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[GPU_MONITOR]->ebox), caption);
+    }
+    if (global->monitor[GPU_MEM_MONITOR]->options.enabled)
+    {
+        g_snprintf(caption, sizeof(caption), _("GPU Memory: %ld%%"),
+                   global->monitor[GPU_MEM_MONITOR]->value_read);
+        gtk_widget_set_tooltip_text(GTK_WIDGET(global->monitor[GPU_MEM_MONITOR]->ebox), caption);
     }
 
     if (global->uptime->enabled)
@@ -864,6 +871,7 @@ monitor_create_options(XfcePanelPlugin *plugin, t_global_monitor *global)
             N_ ("Memory monitor"),
             N_ ("Swap monitor"),
             N_ ("GPU monitor"),
+            N_ ("GPU memory monitor"),
             N_ ("Uptime monitor")
     };
 
